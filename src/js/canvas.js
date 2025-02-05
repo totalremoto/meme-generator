@@ -39,6 +39,42 @@ export class Canvas {
     return this;
   }
 
+  calculateDimensionsForAspectRatio(originalWidth, originalHeight, targetRatio) {
+    if (targetRatio === 'original') {
+      return { width: originalWidth, height: originalHeight };
+    }
+
+    const [widthRatio, heightRatio] = targetRatio.split(':').map(Number);
+    const targetAspectRatio = widthRatio / heightRatio;
+    const originalAspectRatio = originalWidth / originalHeight;
+    
+    let newWidth = originalWidth;
+    let newHeight = originalHeight;
+
+    if (targetAspectRatio > originalAspectRatio) {
+      // Width becomes the constraint
+      newWidth = originalWidth;
+      newHeight = originalWidth / targetAspectRatio;
+    } else {
+      // Height becomes the constraint
+      newHeight = originalHeight;
+      newWidth = originalHeight * targetAspectRatio;
+    }
+
+    // Ensure dimensions don't exceed max size
+    const MAX_SIZE = 2000;
+    if (newWidth > MAX_SIZE || newHeight > MAX_SIZE) {
+      const scale = MAX_SIZE / Math.max(newWidth, newHeight);
+      newWidth *= scale;
+      newHeight *= scale;
+    }
+
+    return {
+      width: Math.round(newWidth),
+      height: Math.round(newHeight)
+    };
+  }
+
   toDataURL() {
     return this.#canvas.toDataURL();
   }

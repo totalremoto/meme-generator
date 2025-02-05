@@ -47,6 +47,7 @@ const removeTextForm = document.getElementById('removeTextForm');
 const maxImageDimensionsForm = document.getElementById('maxImageDimensionsForm');
 const maxImageDimensionsSelect = maxImageDimensionsForm['maxImageDimensions'];
 const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+const aspectRatioSelect = document.getElementById('aspectRatioSelect');
 const maxImageDimensionsFromStorage = storage.get('maxImageDimensions');
 let shouldFocusOnTextboxCreate = false;
 let selectedImage = null;
@@ -135,9 +136,17 @@ const afterImageSelect = () => {
 };
 
 const handleImageLoad = evt => {
-  selectedImage = evt.target;
-  setImageMaxDimensions(selectedImage);
-  afterImageSelect();
+  const img = evt.target;
+  selectedImage = img;
+
+  const aspectRatio = aspectRatioSelect.value;
+  const { width, height } = canvas.calculateDimensionsForAspectRatio(img.width, img.height, aspectRatio);
+
+  canvas.setDimensions({ width, height });
+  canvas.draw(selectedImage, Textbox.getAll()).show();
+  dropzoneEl.classList.add('dropzone--accepted');
+  instructionsEl.hidden = true;
+  clearCanvasBtn.hidden = false;
 };
 
 const handleSolidColorFormInput = evt => {
@@ -549,6 +558,16 @@ const handleMaxImageDimensionsFormChange = evt => {
   canvas.draw(selectedImage, Textbox.getAll());
 };
 
+const handleAspectRatioChange = () => {
+  if (!selectedImage) return;
+  
+  const aspectRatio = aspectRatioSelect.value;
+  const { width, height } = canvas.calculateDimensionsForAspectRatio(selectedImage.width, selectedImage.height, aspectRatio);
+  
+  canvas.setDimensions({ width, height });
+  canvas.draw(selectedImage, Textbox.getAll());
+};
+
 const handleTextboxCreate = evt => {
   const textbox = evt.detail.textbox;
   const textboxEl = Textbox.createElement(textbox, shouldFocusOnTextboxCreate);
@@ -704,6 +723,7 @@ gallerySearchEl.addEventListener('input', handleGallerySearchInput);
 solidColorForm.addEventListener('input', handleSolidColorFormInput);
 removeTextForm.addEventListener('submit', handleTextRemoveFormSubmit);
 maxImageDimensionsForm.addEventListener('change', handleMaxImageDimensionsFormChange);
+aspectRatioSelect.addEventListener('change', handleAspectRatioChange);
 clearCanvasBtn.addEventListener('click', handleClearCanvas);
 cameraSelect.addEventListener('change', handleCameraSelectChange);
 capturePhotoButton.addEventListener('click', handleCapturePhotoButtonClick);
